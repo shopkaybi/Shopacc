@@ -118,6 +118,86 @@ def login():
 def logout():
     session.clear()
     return redirect("/")
+@app.route("/admin")
+def admin():
+    return """
+    <h1>ADMIN PANEL</h1>
 
+    <form action="/add_product" method="POST">
+        <input name="title" placeholder="Tên acc"><br><br>
+        <input name="price" placeholder="Giá"><br><br>
+        <textarea name="description" placeholder="Mô tả"></textarea><br><br>
+
+        <button type="submit">
+            Thêm sản phẩm
+        </button>
+    </form>
+
+    <br>
+
+    <a href="/shop">Xem Shop</a>
+    """
+
+@app.route("/add_product", methods=["POST"])
+def add_product():
+
+    title = request.form["title"]
+    price = request.form["price"]
+    description = request.form["description"]
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        price INTEGER,
+        description TEXT
+    )
+    """)
+
+    c.execute(
+        "INSERT INTO products(title,price,description) VALUES(?,?,?)",
+        (title, price, description)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/shop")
+
+@app.route("/shop")
+def shop():
+
+    conn = sqlite3.connect("database.db")
+    c = conn.cursor()
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        price INTEGER,
+        description TEXT
+    )
+    """)
+
+    c.execute("SELECT * FROM products")
+
+    products = c.fetchall()
+
+    conn.close()
+
+    html = "<h1>SHOP ACC ROBLOX</h1>"
+
+    for p in products:
+        html += f"""
+        <hr>
+        <h3>{p[1]}</h3>
+        <p>Giá: {p[2]} VNĐ</p>
+        <p>{p[3]}</p>
+        """
+
+    return html
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
